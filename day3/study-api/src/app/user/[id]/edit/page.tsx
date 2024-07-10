@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useUserFormStore } from '@/store'
 
 interface User {
   id: string
@@ -38,8 +39,6 @@ const EditUserPage = () => {
   const router = useRouter()
   const id = pathname?.split('/')[2]
   const queryClient = useQueryClient()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
 
   const {
     data: user,
@@ -64,6 +63,8 @@ const EditUserPage = () => {
       alert(error.message)
     }
   })
+
+  const { name, email, setName, setEmail } = useUserFormStore()
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
