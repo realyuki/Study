@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import useSWR from 'swr'
+import { useRecoilState } from 'recoil'
+import { usersState } from '@/store'
 
 interface User {
   id: string
@@ -9,7 +11,7 @@ interface User {
   email: string
 }
 
-const fetchUsers = async (): Promise<User[]> => {
+const fetchUsers = async (id: string): Promise<User[]> => {
   const response = await fetch('/api/user')
   if (!response.ok) {
     throw new Error('Failed to fetch users')
@@ -18,16 +20,13 @@ const fetchUsers = async (): Promise<User[]> => {
 }
 
 const UsersPage = () => {
-  const {
-    data: users,
-    isLoading,
-    error
-  } = useQuery<User[], Error>({
-    queryKey: ['users'],
-    queryFn: fetchUsers
+  const [users, setUsers] = useRecoilState(usersState)
+
+  const { data, error } = useSWR(`/api/user`, fetchUsers, {
+    onSuccess: (data) => setUsers(data)
   })
 
-  if (isLoading) {
+  if (!data && !error) {
     return <div>Loading...</div>
   }
 
@@ -39,13 +38,15 @@ const UsersPage = () => {
     <div>
       <h1>Users List</h1>
       <ul className="file-list">
-        {users?.map((user) => (
-          <li key={user.id}>
-            <span className="user-name">{user.name}</span>
-            <Link href={`/user/${user.id}`}>상세</Link>
-            <Link href={`/user/${user.id}/edit`}>수정</Link>
-          </li>
-        ))}
+        {users?.map((user) => {
+          return (
+            <li key={user.id}>
+              <span className="user-name">{user.name}</span>
+              <Link href={`/user/${user.id}`}>상세</Link>
+              <Link href={`/user/${user.id}/edit`}>수정</Link>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

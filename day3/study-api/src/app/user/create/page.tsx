@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMutation } from '@tanstack/react-query'
+import { mutate } from 'swr'
+import { useRecoilState } from 'recoil'
+import { nameState, emailState } from '@/store'
 
 interface CreateUserInput {
   name: string
@@ -25,27 +27,22 @@ const createUser = async (user: CreateUserInput) => {
 }
 
 const CreateUserPage = () => {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [name, setName] = useRecoilState(nameState)
+  const [email, setEmail] = useRecoilState(emailState)
+  const [formError, setFormError] = useState<string | null>(null)
   const router = useRouter()
 
-  const mutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      alert('생성했습니다. Users List 페이지로 이동합니다.')
-      router.push('/user')
-    },
-    onError: (error: Error) => {
-      alert(error.message)
-    }
-  })
-
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    mutation.mutate({
-      name,
-      email
-    })
+    setFormError(null)
+    try {
+      await createUser({ name, email })
+      alert('생성했습니다. Users List 페이지로 이동합니다.')
+      mutate('/api/user')
+      router.push('/user')
+    } catch (error: any) {
+      setFormError(error.message)
+    }
   }
 
   return (
@@ -78,9 +75,7 @@ const CreateUserPage = () => {
           Create User
         </button>
       </form>
-      {mutation.isError && (
-        <p style={{ color: 'red' }}>{mutation.error.message}</p>
-      )}
+      {formError && <p style={{ color: 'red' }}>{formError}</p>}
     </div>
   )
 }

@@ -2,7 +2,10 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
+import useSWR, { mutate } from 'swr'
+import { useRecoilState } from 'recoil'
+import { userState } from '@/store'
+import { useEffect } from 'react'
 
 interface User {
   id: string
@@ -33,36 +36,30 @@ const UserPage = () => {
   const pathname = usePathname()
   const router = useRouter()
   const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
-  const {
-    data: user,
-    isLoading,
-    error
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
+  const [user, setUser] = useRecoilState(userState)
+
+  const { data, error } = useSWR<User, Error>(id, fetchUser, {
+    onSuccess: (data) => setUser(data)
   })
 
-  const deleteUserMutation = useMutation({
-    mutationFn: () => deleteUser(id as string),
-    onSuccess: () => {
+  useEffect(() => {
+    if (data) {
+      setUser(data)
+    }
+  }, [data])
+
+  const handleDelete = async () => {
+    try {
+      await deleteUser(id as string)
       alert('삭제했습니다. 목록 페이지로 이동합니다.')
-      queryClient.invalidateQueries({
-        queryKey: ['user', id]
-      })
+      mutate(`/api/user/${id}`)
       router.push('/user')
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       alert(error.message || 'Failed to delete user')
     }
-  })
-
-  const handleDelete = () => {
-    deleteUserMutation.mutate()
   }
 
-  if (isLoading) {
+  if (!data && !error) {
     return <div>Loading...</div>
   }
 
@@ -82,7 +79,7 @@ const UserPage = () => {
       <div className="actions">
         <button
           onClick={handleDelete}
-          disabled={isLoading}
+          disabled={!data && !error}
           className="btn-delete"
         >
           Delete User

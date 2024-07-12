@@ -1,15 +1,27 @@
-import { create } from 'zustand'
+import { atom } from 'recoil'
 
-interface UserFormState {
+interface User {
+  id: string
   name: string
   email: string
-  setName: (name: string) => void
-  setEmail: (email: string) => void
 }
 
-export const useUserFormStore = create<UserFormState>((set) => ({
-  name: '',
-  email: '',
-  setName: (name) => set({ name }),
-  setEmail: (email) => set({ email })
-}))
+export const userState = atom<User | null>({
+  key: 'userState',
+  default: null
+})
+
+export const usersState = atom<User[]>({
+  key: 'usersState',
+  default: []
+})
+
+export const nameState = atom<string>({
+  key: 'nameState',
+  default: ''
+})
+
+export const emailState = atom<string>({
+  key: 'emailState',
+  default: ''
+})

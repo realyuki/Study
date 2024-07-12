@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useUserFormStore } from '@/store'
+import useSWR, { mutate } from 'swr'
+import { useRecoilState } from 'recoil'
+import { nameState, emailState } from '@/store'
 
 interface User {
   id: string
@@ -38,42 +39,23 @@ const EditUserPage = () => {
   const pathname = usePathname()
   const router = useRouter()
   const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
 
-  const {
-    data: user,
-    isLoading,
-    error: fetchError
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
-  })
+  const { data: user, error: fetchError, isLoading } = useSWR(id, fetchUser)
 
-  const updateUserMutation = useMutation({
-    mutationFn: updateUser,
-    onSuccess: () => {
-      alert('수정했습니다. 상세 페이지로 이동합니다.'),
-        queryClient.invalidateQueries({
-          queryKey: ['user', id]
-        })
-      router.push(`/user/${id}`)
-    },
-    onError: (error: Error) => {
-      alert(error.message)
-    }
-  })
+  const [name, setName] = useRecoilState(nameState)
+  const [email, setEmail] = useRecoilState(emailState)
 
-  const { name, email, setName, setEmail } = useUserFormStore()
-
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (user) {
-      updateUserMutation.mutate({
-        id: user.id,
-        name,
-        email
-      })
+      try {
+        await updateUser({ id: user.id, name, email })
+        alert('수정했습니다. 상세 페이지로 이동합니다.')
+        mutate(`/api/user?id=${id}`)
+        router.push(`/user/${id}`)
+      } catch (error: any) {
+        alert(error.message)
+      }
     }
   }
 
