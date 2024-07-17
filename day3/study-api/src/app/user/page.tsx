@@ -1,38 +1,27 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUsers = async (): Promise<User[]> => {
-  const response = await fetch('/api/user')
-  if (!response.ok) {
-    throw new Error('Failed to fetch users')
-  }
-  return response.json()
-}
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState, AppDispatch } from '@/store'
+import { fetchUsers } from '@/store/userFormSlice'
 
 const UsersPage = () => {
-  const {
-    data: users,
-    isLoading,
-    error
-  } = useQuery<User[], Error>({
-    queryKey: ['users'],
-    queryFn: fetchUsers
-  })
+  const dispatch = useDispatch<AppDispatch>()
+  const { users, status, error } = useSelector(
+    (state: RootState) => state.users
+  )
 
-  if (isLoading) {
+  useEffect(() => {
+    dispatch(fetchUsers())
+  }, [dispatch])
+
+  if (status === 'loading') {
     return <div>Loading...</div>
   }
 
-  if (error) {
-    return <div>Error: {error.message}</div>
+  if (status === 'failed') {
+    return <div>Error: {error}</div>
   }
 
   return (

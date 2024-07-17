@@ -2,94 +2,51 @@
 
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useUserFormStore } from '@/store'
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUser = async (id: string): Promise<User> => {
-  const response = await fetch(`/api/user?id=${id}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch user')
-  }
-  return response.json()
-}
-
-const updateUser = async (user: User) => {
-  const response = await fetch('/api/user', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(user)
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to update user')
-  }
-  return response.json()
-}
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState, AppDispatch } from '@/store'
+import { fetchUser, updateUser, setName, setEmail } from '@/store/userFormSlice'
 
 const EditUserPage = () => {
   const pathname = usePathname()
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
   const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
 
-  const {
-    data: user,
-    isLoading,
-    error: fetchError
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
-  })
+  const { name, email, status, error } = useSelector(
+    (state: RootState) => state.userForm
+  )
 
-  const updateUserMutation = useMutation({
-    mutationFn: updateUser,
-    onSuccess: () => {
-      alert('수정했습니다. 상세 페이지로 이동합니다.'),
-        queryClient.invalidateQueries({
-          queryKey: ['user', id]
-        })
-      router.push(`/user/${id}`)
-    },
-    onError: (error: Error) => {
-      alert(error.message)
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchUser(id))
     }
-  })
-
-  const { name, email, setName, setEmail } = useUserFormStore()
+  }, [])
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    if (user) {
-      updateUserMutation.mutate({
-        id: user.id,
+    dispatch(
+      updateUser({
+        id: id as string,
         name,
         email
       })
-    }
+    )
+      .unwrap()
+      .then(() => {
+        alert('수정했습니다. 상세 페이지로 이동합니다.')
+        router.push(`/user/${id}`)
+      })
+      .catch((error) => {
+        alert(error.message)
+      })
   }
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name)
-      setEmail(user.email)
-    }
-  }, [user])
-
-  if (isLoading) {
+  if (status === 'loading') {
     return <div>Loading...</div>
   }
 
-  if (fetchError) {
-    return <div>Error: {fetchError.message}</div>
+  if (status === 'failed') {
+    return <div>Error: {error}</div>
   }
 
   return (
@@ -122,7 +79,7 @@ const EditUserPage = () => {
           Update User
         </button>
       </form>
-      {fetchError && <p style={{ color: 'red' }}>{fetchError}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   )
 }

@@ -1,51 +1,35 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMutation } from '@tanstack/react-query'
-
-interface CreateUserInput {
-  name: string
-  email: string
-}
-
-const createUser = async (user: CreateUserInput) => {
-  const response = await fetch('/api/user', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(user)
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to create user')
-  }
-  return response.json()
-}
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState, AppDispatch } from '@/store'
+import { createUser, setName, setEmail, resetForm } from '@/store/userFormSlice'
 
 const CreateUserPage = () => {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
 
-  const mutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      alert('생성했습니다. Users List 페이지로 이동합니다.')
-      router.push('/user')
-    },
-    onError: (error: Error) => {
-      alert(error.message)
-    }
-  })
+  const { name, email, status, error } = useSelector(
+    (state: RootState) => state.userForm
+  )
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    mutation.mutate({
-      name,
-      email
-    })
+    dispatch(
+      createUser({
+        name,
+        email
+      })
+    )
+      .unwrap()
+      .then(() => {
+        alert('생성했습니다. Users List 페이지로 이동합니다.')
+        dispatch(resetForm())
+        router.push('/user')
+      })
+      .catch((error) => {
+        alert(error.message || 'Failed to create user')
+      })
   }
 
   return (
@@ -78,9 +62,7 @@ const CreateUserPage = () => {
           Create User
         </button>
       </form>
-      {mutation.isError && (
-        <p style={{ color: 'red' }}>{mutation.error.message}</p>
-      )}
+      {status === 'failed' && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   )
 }

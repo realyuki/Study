@@ -1,73 +1,47 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUser = async (id: string): Promise<User> => {
-  const response = await fetch(`/api/user/${id}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch user')
-  }
-  return response.json()
-}
-
-const deleteUser = async (id: string) => {
-  const response = await fetch(`/api/user?id=${id}`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to delete user')
-  }
-  return response.json()
-}
+import { useSelector, useDispatch } from 'react-redux'
+import { AppDispatch, RootState } from '@/store'
+import { fetchUser } from '@/store/userFormSlice'
+import { deleteUser } from '@/store/uesrSlice'
 
 const UserPage = () => {
   const pathname = usePathname()
   const router = useRouter()
   const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
-  const {
-    data: user,
-    isLoading,
-    error
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
-  })
+  const dispatch = useDispatch<AppDispatch>()
 
-  const deleteUserMutation = useMutation({
-    mutationFn: () => deleteUser(id as string),
-    onSuccess: () => {
-      alert('삭제했습니다. 목록 페이지로 이동합니다.')
-      queryClient.invalidateQueries({
-        queryKey: ['user', id]
-      })
-      router.push('/user')
-    },
-    onError: (error: any) => {
-      alert(error.message || 'Failed to delete user')
+  const { user, status, error } = useSelector(
+    (state: RootState) => state.userForm
+  )
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchUser(id))
     }
-  })
+  }, [])
 
   const handleDelete = () => {
-    deleteUserMutation.mutate()
+    dispatch(deleteUser(id as string))
+      .unwrap()
+      .then(() => {
+        alert('삭제했습니다. 목록 페이지로 이동합니다.')
+        router.push('/user')
+      })
+      .catch((error) => {
+        alert(error.message || 'Failed to delete user')
+      })
   }
 
-  if (isLoading) {
+  if (status === 'loading') {
     return <div>Loading...</div>
   }
 
-  if (error) {
-    return <div>Error: {error.message}</div>
+  if (status === 'failed') {
+    return <div>Error: {error}</div>
   }
 
   return (
@@ -82,7 +56,7 @@ const UserPage = () => {
       <div className="actions">
         <button
           onClick={handleDelete}
-          disabled={isLoading}
+          disabled={status === 'idle'}
           className="btn-delete"
         >
           Delete User

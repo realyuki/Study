@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { ReactQueryProviders } from './_components'
+import { Providers } from './_components'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ReactQueryProviders>
+        <Providers>
           <ul className="list-tab">
             <li>
               <a href="/">Root</a>
@@ -31,7 +31,7 @@ export default function RootLayout({
             </li>
           </ul>
           {children}
-        </ReactQueryProviders>
+        </Providers>
       </body>
     </html>
   )
