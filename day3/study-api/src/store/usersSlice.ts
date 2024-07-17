@@ -23,13 +23,27 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
   if (!response.ok) {
     throw new Error('Failed to fetch users')
   }
-  return response.json() as Promise<User[]>
+  return (await response.json()) as Promise<User[]>
 })
 
 const usersSlice = createSlice({
   name: 'users',
   initialState,
-  reducers: {}
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.users = action.payload
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || 'Failed to fetch users'
+      })
+  }
 })
 
 export const usersReducer = usersSlice.reducer

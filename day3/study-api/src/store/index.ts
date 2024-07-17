@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { userFormReducer } from './userFormSlice'
-import { userReducer } from './uesrSlice'
+import { userReducer } from './userSlice'
 import { usersReducer } from './usersSlice'
 
 export const store = configureStore({

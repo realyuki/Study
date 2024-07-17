@@ -35,7 +35,21 @@ export const deleteUser = createAsyncThunk(
 const userSlice = createSlice({
   name: 'user',
   initialState,
-  reducers: {}
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(deleteUser.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        state.user = null
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || 'Failed to delete user'
+      })
+  }
 })
 
 export const userReducer = userSlice.reducer

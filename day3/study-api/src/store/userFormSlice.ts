@@ -92,6 +92,48 @@ const userFormSlice = createSlice({
       state.email = ''
       state.user = null
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUser.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(fetchUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.status = 'succeeded'
+        state.user = action.payload
+        state.name = action.payload.name
+        state.email = action.payload.email
+      })
+      .addCase(fetchUser.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || 'Failed to fetch user'
+      })
+      .addCase(createUser.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(createUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.status = 'succeeded'
+        state.user = action.payload
+        state.name = action.payload.name
+        state.email = action.payload.email
+      })
+      .addCase(createUser.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || 'Failed to create user'
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.status = 'loading'
+      })
+      .addCase(updateUser.fulfilled, (state, action: PayloadAction<User>) => {
+        state.status = 'succeeded'
+        state.user = action.payload
+        state.name = action.payload.name
+        state.email = action.payload.email
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message || 'Failed to update user'
+      })
   }
 })
 

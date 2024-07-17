@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useSelector, useDispatch } from 'react-redux'
 import { AppDispatch, RootState } from '@/store'
 import { fetchUser } from '@/store/userFormSlice'
-import { deleteUser } from '@/store/uesrSlice'
+import { deleteUser } from '@/store/userSlice'
 
 const UserPage = () => {
   const pathname = usePathname()
