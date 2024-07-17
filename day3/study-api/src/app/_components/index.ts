@@ -1,1 +1,1 @@
-export * from './ReactQueryProviders'
+export * from './SWRProvider'
