@@ -42,7 +42,7 @@ const CreateUserPage = () => {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => dispatch(setName(e.target.value))}
               required
             />
           </label>
@@ -53,7 +53,7 @@ const CreateUserPage = () => {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => dispatch(setEmail(e.target.value))}
               required
             />
           </label>
