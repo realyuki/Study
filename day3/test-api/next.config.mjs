@@ -4,11 +4,11 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*'
+        source: '/api/user/:path*',
+        destination: 'http://localhost:3000/api/user/:path*'
       }
     ]
   }
-};
+}
 
-export default nextConfig;
+export default nextConfig
