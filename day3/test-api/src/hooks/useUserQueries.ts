@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchUser, updateUser, deleteUser, createUser } from '@/services/api'
+import {
+  fetchUser,
+  fetchUsers,
+  updateUser,
+  deleteUser,
+  createUser
+} from '@/services/api'
 import { useRouter } from 'next/navigation'
 
 interface User {
@@ -13,6 +19,13 @@ export const useFetchUser = (id: string) => {
     queryKey: ['user', id],
     queryFn: () => fetchUser(id),
     enabled: !!id
+  })
+}
+
+export const useFetchUsers = () => {
+  return useQuery<User[], Error>({
+    queryKey: ['users'],
+    queryFn: fetchUsers
   })
 }
 

@@ -1,32 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-import axiosInstance from '@/services/httpClient'
-
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUsers = async (): Promise<User[]> => {
-  const response = await axiosInstance.get('/user')
-  if (response.status !== 200) {
-    throw new Error('Failed to fetch users')
-  }
-  return response.data
-}
+import { useFetchUsers } from '@/hooks/useUserQueries'
 
 const UsersPage = () => {
-  const {
-    data: users,
-    isLoading,
-    error
-  } = useQuery<User[], Error>({
-    queryKey: ['users'],
-    queryFn: fetchUsers
-  })
+  const { data: users, isLoading, error } = useFetchUsers()
 
   if (isLoading) {
     return <div>Loading...</div>

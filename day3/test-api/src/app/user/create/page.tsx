@@ -1,44 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useMutation } from '@tanstack/react-query'
-
-interface CreateUserInput {
-  name: string
-  email: string
-}
-
-const createUser = async (user: CreateUserInput) => {
-  const response = await fetch('/api/user', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(user)
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to create user')
-  }
-  return response.json()
-}
+import { useCreateUser } from '@/hooks/useUserQueries'
+import { useUserFormStore } from '@/store/useUserFormStore'
 
 const CreateUserPage = () => {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const router = useRouter()
-
-  const mutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      alert('생성했습니다. Users List 페이지로 이동합니다.')
-      router.push('/user')
-    },
-    onError: (error: Error) => {
-      alert(error.message)
-    }
-  })
+  const { name, email, setName, setEmail } = useUserFormStore()
+  const mutation = useCreateUser()
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()

@@ -15,6 +15,14 @@ export const fetchUser = async (id: string): Promise<User> => {
   }
 }
 
+export const fetchUsers = async (): Promise<User[]> => {
+  const response = await axiosInstance.get('/user')
+  if (response.status !== 200) {
+    throw new Error('Failed to fetch users')
+  }
+  return response.data
+}
+
 export const updateUser = async (user: User) => {
   try {
     const response = await axiosInstance.put(`/user/${user.id}`, user)
