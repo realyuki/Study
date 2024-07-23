@@ -280,3 +280,19 @@ tr:hover {
 .link:hover {
   color: #0056b3;
 }
+
+.user-list {
+  padding: 0;
+}
+
+.user-list li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 16px;
+  background: #eee;
+}
+
+.user-list li:nth-child(odd) {
+  background: #e1e1e1;
+}

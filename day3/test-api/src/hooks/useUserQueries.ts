@@ -40,6 +40,9 @@ export const useUpdateUser = (id: string) => {
       queryClient.invalidateQueries({
         queryKey: ['user', id]
       })
+      queryClient.invalidateQueries({
+        queryKey: ['users']
+      })
       router.push(`/user/${id}`)
     },
     onError: (error: Error) => {
@@ -59,6 +62,9 @@ export const useDeleteUser = (id: string) => {
       queryClient.invalidateQueries({
         queryKey: ['user', id]
       })
+      queryClient.invalidateQueries({
+        queryKey: ['users']
+      })
       router.push('/user')
     },
     onError: (error: Error) => {
@@ -68,12 +74,14 @@ export const useDeleteUser = (id: string) => {
 }
 
 export const useCreateUser = () => {
-  const router = useRouter()
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: createUser,
     onSuccess: () => {
-      alert('생성했습니다. Users List 페이지로 이동합니다.')
-      router.push('/user')
+      alert('생성했습니다. 사용자 목록이 업데이트되었습니다.')
+      queryClient.invalidateQueries({
+        queryKey: ['users']
+      })
     },
     onError: (error: Error) => {
       alert(error.message)
