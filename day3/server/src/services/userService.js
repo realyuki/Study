@@ -2,7 +2,6 @@ const User = require('../models/user')
 const { v4: uuidv4 } = require('uuid')
 
 exports.findUserById = async (id) => {
-  console.log('id', id)
   return await User.findOne({ id })
 }
 

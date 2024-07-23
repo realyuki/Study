@@ -1,79 +1,23 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useFetchUser, useUpdateUser } from '@/hooks/useUserQueries'
 import { useUserFormStore } from '@/store/useUserFormStore'
 
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUser = async (id: string): Promise<User> => {
-  const response = await fetch(`/api/user/${id}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch user')
-  }
-  return response.json()
-}
-
-const updateUser = async (user: User) => {
-  const response = await fetch(`/api/user/${user.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(user)
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to update user')
-  }
-  return response.json()
-}
-
-const EditUserPage = () => {
-  const pathname = usePathname()
-  const router = useRouter()
-  const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
-
+const EditUserPage = ({ params }: { params: { id: string } }) => {
+  const id = params.id
   const {
     data: user,
     isLoading,
     error: fetchError
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
-  })
-
-  const updateUserMutation = useMutation({
-    mutationFn: updateUser,
-    onSuccess: () => {
-      alert('수정했습니다. 상세 페이지로 이동합니다.'),
-        queryClient.invalidateQueries({
-          queryKey: ['user', id]
-        })
-      router.push(`/user/${id}`)
-    },
-    onError: (error: Error) => {
-      alert(error.message)
-    }
-  })
-
+  } = useFetchUser(id as string)
+  const updateUserMutation = useUpdateUser(id as string)
   const { name, email, setName, setEmail } = useUserFormStore()
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     if (user) {
-      updateUserMutation.mutate({
-        id: user.id,
-        name,
-        email
-      })
+      updateUserMutation.mutate({ id: user.id, name, email })
     }
   }
 
@@ -82,7 +26,7 @@ const EditUserPage = () => {
       setName(user.name)
       setEmail(user.email)
     }
-  }, [user])
+  }, [user, setName, setEmail])
 
   if (isLoading) {
     return <div>Loading...</div>

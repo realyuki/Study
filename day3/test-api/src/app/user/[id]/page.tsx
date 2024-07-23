@@ -1,62 +1,12 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
+import { useFetchUser, useDeleteUser } from '@/hooks/useUserQueries'
 
-interface User {
-  id: string
-  name: string
-  email: string
-}
-
-const fetchUser = async (id: string): Promise<User> => {
-  const response = await fetch(`/api/user/${id}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch user')
-  }
-  return response.json()
-}
-
-const deleteUser = async (id: string) => {
-  const response = await fetch(`/api/user/${id}`, {
-    method: 'DELETE'
-  })
-  if (!response.ok) {
-    const data = await response.json()
-    throw new Error(data.message || 'Failed to delete user')
-  }
-  return response.json()
-}
-
-const UserPage = () => {
-  const pathname = usePathname()
-  const router = useRouter()
-  const id = pathname?.split('/')[2]
-  const queryClient = useQueryClient()
-  const {
-    data: user,
-    isLoading,
-    error
-  } = useQuery<User, Error>({
-    queryKey: ['user', id],
-    queryFn: () => fetchUser(id as string),
-    enabled: !!id
-  })
-
-  const deleteUserMutation = useMutation({
-    mutationFn: () => deleteUser(id as string),
-    onSuccess: () => {
-      alert('삭제했습니다. 목록 페이지로 이동합니다.')
-      queryClient.invalidateQueries({
-        queryKey: ['user', id]
-      })
-      router.push('/user')
-    },
-    onError: (error: any) => {
-      alert(error.message || 'Failed to delete user')
-    }
-  })
+const UserPage = ({ params }: { params: { id: string } }) => {
+  const id = params.id
+  const { data: user, isLoading, error } = useFetchUser(id as string)
+  const deleteUserMutation = useDeleteUser(id as string)
 
   const handleDelete = () => {
     deleteUserMutation.mutate()

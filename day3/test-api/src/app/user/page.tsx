@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
+import axiosInstance from '@/services/httpClient'
 
 interface User {
   id: string
@@ -10,11 +11,11 @@ interface User {
 }
 
 const fetchUsers = async (): Promise<User[]> => {
-  const response = await fetch('/api/user')
-  if (!response.ok) {
+  const response = await axiosInstance.get('/user')
+  if (response.status !== 200) {
     throw new Error('Failed to fetch users')
   }
-  return response.json()
+  return response.data
 }
 
 const UsersPage = () => {
